@@ -10,3 +10,6 @@ public/espeak-ng.wasm
 .espeak-proto
 .playwright-mcp
 *-working.png
+*.jpeg
+.verify-tmp.mjs
+_espeak_node_check.mjs

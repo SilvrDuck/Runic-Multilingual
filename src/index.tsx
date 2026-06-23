@@ -5,9 +5,20 @@ import { RuneReferenceTable } from "components/RuneReference";
 import { consonantDataTable, vowelDataTable } from "./runeDataset";
 import { RunicPlayground } from "components/RunicPlayground";
 import { Testimonials } from "components/Testimonials";
+import { LanguageSelector } from "components/LanguageSelector";
+import { setupPageLocalization } from "./i18n";
 import { addGoldenPathListener } from "./holyCross";
 
 function setup() {
+    // Localize the static page copy + keep it in sync with language changes.
+    setupPageLocalization();
+
+    // Global language selector (drives translation + UI language)
+    render(
+        <LanguageSelector />,
+        document.querySelector(".language-selector-container"),
+    );
+
     // Runic Translator
     render(
         <RunicEditor></RunicEditor>,

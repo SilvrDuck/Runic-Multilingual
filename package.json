@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "prebuild": "npm test",
     "build": "node esbuild.js --production",
     "dev": "node esbuild.js --watch",
+    "test": "esbuild scripts/verify_examples.ts --bundle --platform=node --format=esm --external:espeak-ng --outfile=.verify-tmp.mjs --log-level=warning && node .verify-tmp.mjs",
     "format": "prettier -w src/**/*.{ts,tsx}"
   },
   "keywords": [],

@@ -1,0 +1,23 @@
+.language-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 0.9rem;
+}
+
+.language-selector__label {
+    font-size: 1.2em;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.language-selector__select {
+    font: inherit;
+    color: inherit;
+    padding: 0.35em 0.6em;
+    border-radius: 0.5em;
+    border: 2px solid var(--surface-1-border);
+    background-color: var(--surface-1);
+    cursor: pointer;
+}
+
