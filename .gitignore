@@ -2,3 +2,11 @@ node_modules
 notes
 dist
 .vscode
+
+# eSpeak-ng wasm is sourced from the npm package at build time (see esbuild.js)
+public/espeak-ng.wasm
+
+# Local scratch / exploration artifacts
+.espeak-proto
+.playwright-mcp
+*-working.png

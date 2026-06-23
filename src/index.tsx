@@ -1,5 +1,4 @@
 import { render } from "preact";
-import { loadIPADict } from "./ipa";
 import { RunicEditor } from "components/RunicEditor";
 
 import { RuneReferenceTable } from "components/RuneReference";
@@ -9,8 +8,6 @@ import { Testimonials } from "components/Testimonials";
 import { addGoldenPathListener } from "./holyCross";
 
 function setup() {
-    loadIPADict();
-
     // Runic Translator
     render(
         <RunicEditor></RunicEditor>,

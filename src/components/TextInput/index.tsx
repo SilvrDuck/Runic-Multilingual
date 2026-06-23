@@ -17,29 +17,36 @@ export class TextInput extends Component<Props, State> {
         this.onInput();
     }
 
+    private updateRows() {
+        const value = this.textareaElement.value;
+        // Determine the number of lines, +1 to show it can be multiline
+        const numLines = (value.match(/\n/g) || []).length + 1;
+        this.textareaElement.rows = numLines + 1;
+    }
+
     onInput = () => {
         const value = this.textareaElement.value;
 
         // Pass it to the prop
-        this.props.bindInput(value);
+        this.props.bindInput?.(value);
 
-        // Determine the number of lines
-        const numLines = (value.match(/\n/g) || []).length + 1;
-        // Additional 1 line to show the user it can be multiline
-        this.textareaElement.rows = numLines + 1;
+        this.updateRows();
     };
 
     componentDidMount() {
-        // When it mounts, determine the number of lines
-        const value = this.textareaElement.value;
-        // Determine the number of lines
-        const numLines = (value.match(/\n/g) || []).length + 1;
-        // Additional 1 line to show the user it can be multiline
-        this.textareaElement.rows = numLines + 1;
+        // The textarea is uncontrolled: apply the initial `value` once here so
+        // that later parent re-renders (e.g. language switch) don't clobber the
+        // user's text or values pushed in via setText().
+        if (this.props.value != null) {
+            this.textareaElement.value = String(this.props.value);
+        }
+        this.updateRows();
     }
 
     render(props: Props, state: State) {
-        const { label, bindInput, ...otherAttrs } = props;
+        // `value` is intentionally pulled out so it is NOT spread onto the
+        // textarea as a controlled prop (see componentDidMount).
+        const { label, bindInput, value, ...otherAttrs } = props;
         return (
             <div className="text-input">
                 <label className="text-input__label">{label}:</label>
