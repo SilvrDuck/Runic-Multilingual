@@ -14,7 +14,7 @@ const log = (text: string, color = "rgb(128, 128, 128)") =>
 
 const ENABLE_CACHING = !IS_DEVELOPMENT;
 
-const CACHE_NAME = "runic-cache-1";
+const CACHE_NAME = "runic-cache-2";
 let CACHE: Cache = null;
 
 self.addEventListener("install", (event) => {
@@ -46,8 +46,8 @@ self.addEventListener("fetch", (fetchEvent) => {
 function isResourceRequest(urlString: string) {
     // Analytics script
     if (urlString.includes("googletagmanager.com/gtag")) return true;
-    // IPA dictionary
-    if (urlString.includes("ipa_dict.json")) return true;
+    // eSpeak-ng WASM engine (large; cache-first so offline + fast reloads)
+    if (urlString.includes("espeak-ng.wasm")) return true;
     // Google Fonts
     if (urlString.includes("fonts.googleapis.com")) return true;
     // Any image

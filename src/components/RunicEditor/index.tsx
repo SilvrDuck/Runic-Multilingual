@@ -2,7 +2,8 @@ import "./index.css";
 
 import { h, Component, VNode } from "preact";
 import { RuneSVG } from "components/RuneSVG";
-import { translateSentence } from "src/ipa";
+import { translate, warmUp } from "src/ipa";
+import { LANGUAGES, DEFAULT_LANGUAGE, getLanguage } from "src/languages";
 import { RangeInput } from "components/RangeInput";
 import {
     downloadURI,
@@ -25,7 +26,10 @@ import { TextInput } from "components/TextInput";
 
 interface Props {}
 
-interface State {}
+interface State {
+    currentLangId: string;
+    loading: boolean;
+}
 
 /**
  * Get all interactive settings for the Runic Editor.
@@ -145,27 +149,106 @@ function getSettings(obj: RunicEditor): VNode {
     );
 }
 
-const initialEnglishText = "Tunic\nSecret Legend!";
-const initialPhoneticText = "tunɪk\nsikɹət ɫɛdʒənd!";
+const TRANSLATE_DEBOUNCE_MS = 250;
+
+// --- Persisted language choice -------------------------------------------
+const LANG_STORAGE_KEY = "runic-language";
+
+function readStoredLang(): string {
+    try {
+        const stored = localStorage.getItem(LANG_STORAGE_KEY);
+        if (stored && LANGUAGES.some((lang) => lang.id === stored)) {
+            return stored;
+        }
+    } catch {
+        // localStorage unavailable (private mode etc.) — fall through.
+    }
+    return DEFAULT_LANGUAGE.id;
+}
+
+function storeLang(id: string): void {
+    try {
+        localStorage.setItem(LANG_STORAGE_KEY, id);
+    } catch {
+        // ignore
+    }
+}
+
+const INITIAL_LANG_ID = readStoredLang();
+const initialSourceText = getLanguage(INITIAL_LANG_ID).sampleText;
+// For English we can show the readouts WITHOUT booting the engine (instant
+// first paint). For a remembered non-English choice we leave them blank and
+// translate on mount.
+const initialNativeIPA =
+    INITIAL_LANG_ID === "en" ? "tunɪk\nsikɹət lɛdʒənd!" : "";
+const initialRuneIPA = INITIAL_LANG_ID === "en" ? "tunɪk\nsikɹət ɫɛdʒənd!" : "";
 
 export class RunicEditor extends Component<Props, State> {
     runeSVGElement?: RuneSVG;
     svgContainer?: HTMLElement;
-    englishInput?: TextInput;
-    phoneticInput?: TextInput;
+    sourceInput?: TextInput;
+    nativeInput?: TextInput;
+    runeInput?: TextInput;
 
-    componentDidMount(): void {}
+    state: State = {
+        currentLangId: INITIAL_LANG_ID,
+        loading: false,
+    };
+
+    private debounceTimer?: number;
+    // Guards against out-of-order async results clobbering newer ones.
+    private requestToken = 0;
+
+    componentDidMount(): void {
+        // If a non-English language was remembered, the readouts are blank —
+        // translate the sample text now (this is what boots the engine).
+        if (this.state.currentLangId !== "en") {
+            this.scheduleTranslate();
+        }
+    }
+
+    // --- Translation pipeline
+
+    private scheduleTranslate = () => {
+        if (this.debounceTimer) window.clearTimeout(this.debounceTimer);
+        this.debounceTimer = window.setTimeout(
+            this.runTranslate,
+            TRANSLATE_DEBOUNCE_MS,
+        );
+    };
+
+    private runTranslate = async () => {
+        const text = this.sourceInput?.textareaElement?.value ?? "";
+        const language = getLanguage(this.state.currentLangId);
+        const token = ++this.requestToken;
+
+        this.setState({ loading: true });
+        try {
+            const { nativeIPA, runeIPA } = await translate(text, language);
+            // Ignore stale results from an earlier keystroke / language.
+            if (token !== this.requestToken) return;
+            this.nativeInput?.setText(nativeIPA);
+            this.runeInput?.setText(runeIPA);
+            this.runeSVGElement?.setPhoneticText(runeIPA);
+        } catch (e) {
+            console.error("Translation failed:", e);
+        } finally {
+            if (token === this.requestToken) this.setState({ loading: false });
+        }
+    };
 
     // Listeners
 
-    onPhoneticChange = (phoneticText: string) => {
-        this.runeSVGElement.setPhoneticText(phoneticText);
+    onSourceChange = (_text: string) => {
+        this.scheduleTranslate();
     };
 
-    onEnglishChange = (englishText: string) => {
-        const phoneticText = translateSentence(englishText);
-        // Update the phonetic text input
-        this.phoneticInput.setText(phoneticText);
+    onLanguageSelect = (event: Event) => {
+        const langId = (event.currentTarget as HTMLSelectElement).value;
+        storeLang(langId);
+        this.setState({ currentLangId: langId });
+        // Re-translate the current source text in the newly-selected language.
+        this.scheduleTranslate();
     };
 
     onSpreadChange = (spread: number) => {
@@ -270,25 +353,60 @@ export class RunicEditor extends Component<Props, State> {
     };
 
     render() {
+        const language = getLanguage(this.state.currentLangId);
         return (
             <div className="runic-editor">
+                <div className="runic-editor__language-bar">
+                    <label
+                        className="runic-editor__language-label"
+                        htmlFor="language-select"
+                    >
+                        Language:
+                    </label>
+                    <select
+                        id="language-select"
+                        className="runic-editor__language-select"
+                        value={this.state.currentLangId}
+                        onChange={this.onLanguageSelect}
+                    >
+                        {LANGUAGES.map((lang) => (
+                            <option value={lang.id}>{lang.label}</option>
+                        ))}
+                    </select>
+                    {this.state.loading && (
+                        <span className="runic-editor__loading">
+                            Translating…
+                        </span>
+                    )}
+                </div>
                 <div className="runic-editor__input-area">
                     <TextInput
-                        ref={(e) => (this.englishInput = e)}
-                        label="Input (English)"
-                        placeholder="Type something here"
-                        name="text-input--english"
-                        bindInput={this.onEnglishChange}
-                        value={initialEnglishText}
+                        ref={(e) => (this.sourceInput = e)}
+                        label={`Input (${language.label})`}
+                        placeholder={language.sampleText}
+                        name="text-input--source"
+                        bindInput={this.onSourceChange}
+                        onFocus={warmUp}
+                        value={initialSourceText}
                     />
                     <span className="runic-editor__input-divider">&nbsp;</span>
                     <TextInput
-                        ref={(e) => (this.phoneticInput = e)}
-                        label="Input (Phonetic)"
-                        placeholder="Type something here"
-                        name="text-input--phonetic"
-                        bindInput={this.onPhoneticChange}
-                        value={initialPhoneticText}
+                        ref={(e) => (this.nativeInput = e)}
+                        label="Native IPA"
+                        name="text-input--native"
+                        readOnly
+                        bindInput={() => {}}
+                        value={initialNativeIPA}
+                        spellcheck={false}
+                    />
+                    <span className="runic-editor__input-divider">&nbsp;</span>
+                    <TextInput
+                        ref={(e) => (this.runeInput = e)}
+                        label="Rune IPA (Tunic)"
+                        name="text-input--rune"
+                        readOnly
+                        bindInput={() => {}}
+                        value={initialRuneIPA}
                         spellcheck={false}
                     />
                 </div>
@@ -301,7 +419,7 @@ export class RunicEditor extends Component<Props, State> {
                             ref={(e) => (this.runeSVGElement = e)}
                             interactive={false}
                             displayPhonemes={false}
-                            phoneticText={initialPhoneticText}
+                            phoneticText={initialRuneIPA}
                         ></RuneSVG>
                     </div>
                     <hr />

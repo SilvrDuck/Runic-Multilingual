@@ -28,3 +28,9 @@ $ npm ci
 Use `npm run dev` to transpile the code into JS. The `dist` directory will contain the copied assets, and generated code, including `index.html` - and will watch for changes.
 
 Use `npm run build` to generate the minified, bundled code in `dist/`.
+
+### Adding a language
+
+Runic is multilingual: source text is converted to phonemes in-browser
+(eSpeak-ng) and mapped to the closest Tunic-rune phonemes. To add a language,
+see [`src/languages/README.md`](src/languages/README.md).

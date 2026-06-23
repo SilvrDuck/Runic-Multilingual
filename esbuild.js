@@ -18,6 +18,10 @@ const commonBuildOptions = {
     alias: {
         react: "preact/compat",
     },
+    // Node built-ins referenced inside espeak-ng's Emscripten glue (only in its
+    // dead Node branch). Mark them external so the browser bundle builds; the
+    // guarded dynamic imports never execute in the browser.
+    external: ["module", "fs", "path", "url", "crypto"],
     allowOverwrite: true,
 };
 
@@ -38,6 +42,15 @@ async function main() {
                             from: ["./public/**/*"],
                             to: ["./dist"],
                             watch: watch,
+                        },
+                        {
+                            // The eSpeak-ng engine ships in its npm package; copy
+                            // it into dist rather than committing an 18 MB binary.
+                            from: [
+                                "./node_modules/espeak-ng/dist/espeak-ng.wasm",
+                            ],
+                            to: ["./dist"],
+                            watch: false,
                         },
                     ],
                 }),
