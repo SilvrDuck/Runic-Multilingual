@@ -79,6 +79,9 @@ async function main() {
 
     if (watch) {
         await Promise.allSettled(contexts.map((context) => context.watch()));
+        // Serve the built `dist` directory so it's viewable on localhost.
+        const { port } = await contexts[0].serve({ servedir: "dist" });
+        console.log(`\n  Dev server running at http://localhost:${port}\n`);
     } else {
         await Promise.allSettled(
             contexts.map((context) => context.rebuild().then(context.dispose)),
