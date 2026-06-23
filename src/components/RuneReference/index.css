@@ -1,3 +1,14 @@
+.rune-reference-notice {
+    margin: 0 0 0.75em;
+    padding: 0.5em 0.75em;
+    border-radius: 0.5em;
+    background-color: var(--surface-1);
+    color: var(--on-surface-0-alt);
+    font-size: 0.7em;
+    text-align: center;
+    text-wrap: balance;
+}
+
 .rune-reference-grid {
     width: 100%;
     display: grid;
@@ -28,6 +39,12 @@
     border-radius: 0.5em;
 
     text-align: center;
+}
+
+/* Rune the current language cannot produce: dimmed, with the English example
+   shown as a "roughly sounds like" reference. */
+.rune-card--muted {
+    opacity: 0.4;
 }
 
 .rune-card .rune-segments-guide > .rune-segment {

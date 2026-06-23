@@ -89,14 +89,43 @@
             <div class="orb orb-blue"></div>
         </div>
 
+        <div class="top-banner">
+            <p class="top-banner__text">
+                This is a multilingual port of
+                <a
+                    href="https://aryanpingle.com/Runic/"
+                    target="_blank"
+                    rel="noopener"
+                    >aryanpingle's Runic</a
+                >, thanks for open-sourcing it&nbsp;:)
+                <br />
+                You can add your own language by forking
+                <a
+                    href="https://github.com/SilvrDuck/Runic-Multilingual"
+                    target="_blank"
+                    rel="noopener"
+                    >my fork</a
+                >
+                and following the
+                <a
+                    href="https://github.com/SilvrDuck/Runic-Multilingual/blob/master/src/languages/README.md"
+                    target="_blank"
+                    rel="noopener"
+                    >guide</a
+                >.
+            </p>
+        </div>
+
         <header>
             <h1>RUNIC</h1>
         </header>
 
+        <div class="language-selector-container"></div>
+
         <main>
             <article class="introduction-article">
                 <section>
-                    <p>
+                    <p data-i18n="intro">
                         This is a fan made website that helps you read the
                         in-game language of
                         <a
@@ -129,11 +158,10 @@
                             />
                         </picture>
                     </header>
-                    <p>
-                        Convert English text to phonetic - and then to a Runic
-                        image.<br />
-                        Put phrases within <b>&#64;</b> to display them in
-                        English, like <b>&#64;The Librarian&#64;</b>.
+                    <p data-i18n="translator">
+                        Type text in your chosen language - it is converted to
+                        phonemes and mapped to the closest Tunic runes, then
+                        drawn below.
                     </p>
                 </section>
                 <div class="runic-editor-container"></div>
@@ -159,7 +187,7 @@
                             />
                         </picture>
                     </header>
-                    <p>
+                    <p data-i18n="vowel">
                         The perimeter of a rune describes the vowel - click on a
                         card to copy it!
                     </p>
@@ -187,7 +215,7 @@
                             />
                         </picture>
                     </header>
-                    <p>
+                    <p data-i18n="consonant">
                         The inner segments of a rune describes the consonant -
                         click on a card to copy it!
                     </p>
@@ -215,7 +243,9 @@
                             />
                         </picture>
                     </header>
-                    <p>Create your own runes by clicking on segments.</p>
+                    <p data-i18n="playground">
+                        Create your own runes by clicking on segments.
+                    </p>
                 </section>
                 <div class="runic-playground-container"></div>
             </article>
@@ -240,13 +270,15 @@
                             />
                         </picture>
                     </header>
-                    <p>See what fans are saying about this site!</p>
+                    <p data-i18n="testimonials">
+                        See what fans are saying about this site!
+                    </p>
                 </section>
                 <div class="testimonials-container"></div>
             </article>
 
             <footer>
-                <p>
+                <p data-i18n="footerMain">
                     Made by
                     <a href="https://github.com/aryanpingle" target="_blank"
                         >Aryan Pingle</a
@@ -257,7 +289,7 @@
                         >open source on GitHub</a
                     >.
                 </p>
-                <p>
+                <p data-i18n="footerDisclaimer">
                     I do not own any part of "Tunic", or have any relation to
                     the development or production team.<br />
                     I am simply a fan who loves this beautiful,

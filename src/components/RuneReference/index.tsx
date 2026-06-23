@@ -3,6 +3,7 @@ import "./index.css";
 import { RuneSVG } from "components/RuneSVG";
 import { h, Component, VNode } from "preact";
 import { SymbolData } from "src/runeDataset";
+import { languageStore, exampleOverride, isRuneReachable, t } from "src/i18n";
 
 interface Props {
     table: SymbolData[];
@@ -15,10 +16,25 @@ function copySymbol(symbol: SymbolData) {
 }
 
 function runeReferenceGridItem(symbol: SymbolData): VNode<any> {
+    // A rune the current language can produce shows that language's native
+    // example (verified by the build-time test). A rune it can't produce is
+    // greyed out and shows the English example as a "roughly sounds like"
+    // reference. English shows its own defaults for everything.
+    const reachable = isRuneReachable(symbol.ipaSymbol);
+    const override = reachable ? exampleOverride(symbol.ipaSymbol) : undefined;
+    // Localized hints are prefixed with "~" to flag them as an in-language
+    // approximation of the (English) rune sound. English / greyed cards keep
+    // the canonical English hint, unprefixed.
+    const pronunciation = override?.pronunciation
+        ? `~${override.pronunciation}`
+        : symbol.pronunciation;
+    const examples = override?.examples ?? symbol.examples;
+    const muted = languageStore.get() !== "en" && !reachable;
+
     return (
         <div className="rune-reference-grid-item">
             <div
-                className="rune-card"
+                className={"rune-card" + (muted ? " rune-card--muted" : "")}
                 onClick={() => copySymbol(symbol)}
                 title={`Click to copy '${symbol.ipaSymbol}'`}
             >
@@ -35,9 +51,9 @@ function runeReferenceGridItem(symbol: SymbolData): VNode<any> {
                 <div className="rune-info">
                     <span class="rune-info__symbol">{symbol.ipaSymbol}</span>
                     <span class="rune-info__english">
-                        {symbol.pronunciation}
+                        {pronunciation}
                         <br />
-                        {symbol.examples}
+                        {examples}
                     </span>
                 </div>
             </div>
@@ -46,9 +62,23 @@ function runeReferenceGridItem(symbol: SymbolData): VNode<any> {
 }
 
 export class RuneReferenceTable extends Component<Props, State> {
+    private unsubscribe?: () => void;
+
+    componentDidMount() {
+        // Re-render localized examples when the global language changes.
+        this.unsubscribe = languageStore.subscribe(() => this.forceUpdate());
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe?.();
+    }
+
     render(props: Props) {
         return (
             <>
+                {languageStore.get() !== "en" && (
+                    <p class="rune-reference-notice">{t("approxNotice")}</p>
+                )}
                 <div class="rune-reference-grid">
                     {...props.table.map(runeReferenceGridItem)}
                 </div>

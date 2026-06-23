@@ -109,12 +109,46 @@ Add an entry to `LANGUAGES` in [`index.ts`](./index.ts):
 },
 ```
 
-### 6. Done
+### 6. Translate the UI strings
 
-The language dropdown, the persisted last-choice, the three-box editor, the
-tokenizer and the renderer all pick it up automatically — no other files change.
-Verify with `npm run dev`: select the language, type text, and confirm the
-**Native IPA** and **Rune IPA** readouts look right.
+Add an entry for your language id to `STRINGS` in
+[`../i18n/strings.ts`](../i18n/strings.ts). `en` is the complete reference; any
+key you omit falls back to English. (The dropdown shows each language's endonym
+from `label`, so language names themselves aren't translated.)
+
+### 7. Add reference-table examples
+
+Add an entry to `TABLE_EXAMPLES` in [`../i18n/examples.ts`](../i18n/examples.ts)
+for every rune your language can produce, keyed by the rune's IPA symbol. Each
+entry has two fields:
+
+- `pronunciation` — a short "sounds-like" hint in your language's own terms
+  (e.g. `ʃ → "ch"` for French). The table shows it prefixed with `~` to flag it
+  as an approximation. Do **not** reuse the English hints (uh, ee, aw…) — they're
+  meaningless to other speakers.
+- `examples` — native example words that the translator maps to that rune.
+
+Three rules, **all enforced by `npm test`** (which also runs on `npm run build`):
+
+- **Correctness** — each example word, run through the translator, must contain
+  the rune it's listed under (no coincidental English words — they'd be re-read
+  through your language's phonology).
+- **Coverage** — every rune your language can produce must have both a
+  `pronunciation` and `examples`. That set is computed for you as
+  `REACHABLE_RUNES` in `maps.generated.ts` (regenerated in step 4).
+- Runes your language _can't_ produce are greyed out automatically and shown with
+  the English defaults, so leave them out.
+
+Run `npm test` and fix whatever it flags — it names the exact bad word, or the
+reachable rune missing an example or hint.
+
+### 8. Done
+
+The top-of-page language dropdown, the persisted last-choice, the three-box
+editor, the rune tables and the renderer all update **live** when the language
+changes — no page reload. Verify with `npm run dev`: pick the language and
+confirm the UI labels, the **Native IPA** / **Rune IPA** readouts, and the table
+examples all look right.
 
 ---
 

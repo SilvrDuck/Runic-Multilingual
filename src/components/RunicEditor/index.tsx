@@ -3,7 +3,7 @@ import "./index.css";
 import { h, Component, VNode } from "preact";
 import { RuneSVG } from "components/RuneSVG";
 import { translate, warmUp } from "src/ipa";
-import { LANGUAGES, DEFAULT_LANGUAGE, getLanguage } from "src/languages";
+import { t, languageStore } from "src/i18n";
 import { RangeInput } from "components/RangeInput";
 import {
     downloadURI,
@@ -27,7 +27,6 @@ import { TextInput } from "components/TextInput";
 interface Props {}
 
 interface State {
-    currentLangId: string;
     loading: boolean;
 }
 
@@ -57,8 +56,8 @@ function getSettings(obj: RunicEditor): VNode {
     const PhonemeSelect = (
         <ChipSelect
             chipData={[
-                { value: "false", label: "Hide phonemes" },
-                { value: "true", label: "Show phonemes" },
+                { value: "false", label: t("hidePhonemes") },
+                { value: "true", label: t("showPhonemes") },
             ]}
             onChange={obj.onPhonemeDisplayChange}
         />
@@ -66,8 +65,8 @@ function getSettings(obj: RunicEditor): VNode {
     const TransparencySelect = (
         <ChipSelect
             chipData={[
-                { value: "true", label: "Transparent background" },
-                { value: "false", label: "Opaque background" },
+                { value: "true", label: t("transparentBg") },
+                { value: "false", label: t("opaqueBg") },
             ]}
             onChange={obj.onTransparentBackgroundSelect}
         />
@@ -75,7 +74,7 @@ function getSettings(obj: RunicEditor): VNode {
     return (
         <div className="runic-editor__settings-container">
             <RangeInput
-                label={"Thickness"}
+                label={t("thickness")}
                 min={0.05}
                 max={0.5}
                 step={0.01}
@@ -83,7 +82,7 @@ function getSettings(obj: RunicEditor): VNode {
                 bindInput={obj.onThicknessChange}
             ></RangeInput>
             <RangeInput
-                label={"Glow Effect"}
+                label={t("glow")}
                 min={0}
                 max={20}
                 step={0.5}
@@ -91,7 +90,7 @@ function getSettings(obj: RunicEditor): VNode {
                 bindInput={obj.onSpreadChange}
             ></RangeInput>
             <RangeInput
-                label={"Line Height"}
+                label={t("lineHeight")}
                 min={-TOKEN_WIDTH}
                 max={TOKEN_WIDTH}
                 step={0.5}
@@ -103,12 +102,12 @@ function getSettings(obj: RunicEditor): VNode {
             <ColorInput
                 defaultColor="crimson"
                 bindInput={obj.onRuneColorChange}
-                label="Rune Color"
+                label={t("runeColor")}
             />
             <ColorInput
                 defaultColor="black"
                 bindInput={obj.onBackgroundChange}
-                label="Background"
+                label={t("background")}
             />
             {TransparencySelect}
             <div className="runic-editor__download-group">
@@ -136,13 +135,13 @@ function getSettings(obj: RunicEditor): VNode {
                     className="runic-editor__download-button"
                     onClick={() => obj.copyAsPNG()}
                 >
-                    <CopyIcon /> Copy
+                    <CopyIcon /> {t("copy")}
                 </button>
                 <button
                     className="runic-editor__download-button"
                     onClick={() => obj.sharePNG()}
                 >
-                    <ShareIcon /> Share
+                    <ShareIcon /> {t("share")}
                 </button>
             </div>
         </div>
@@ -151,31 +150,9 @@ function getSettings(obj: RunicEditor): VNode {
 
 const TRANSLATE_DEBOUNCE_MS = 250;
 
-// --- Persisted language choice -------------------------------------------
-const LANG_STORAGE_KEY = "runic-language";
-
-function readStoredLang(): string {
-    try {
-        const stored = localStorage.getItem(LANG_STORAGE_KEY);
-        if (stored && LANGUAGES.some((lang) => lang.id === stored)) {
-            return stored;
-        }
-    } catch {
-        // localStorage unavailable (private mode etc.) — fall through.
-    }
-    return DEFAULT_LANGUAGE.id;
-}
-
-function storeLang(id: string): void {
-    try {
-        localStorage.setItem(LANG_STORAGE_KEY, id);
-    } catch {
-        // ignore
-    }
-}
-
-const INITIAL_LANG_ID = readStoredLang();
-const initialSourceText = getLanguage(INITIAL_LANG_ID).sampleText;
+// Initial language comes from the shared store (which reads localStorage).
+const INITIAL_LANG_ID = languageStore.get();
+const initialSourceText = languageStore.getLanguage().sampleText;
 // For English we can show the readouts WITHOUT booting the engine (instant
 // first paint). For a remembered non-English choice we leave them blank and
 // translate on mount.
@@ -191,20 +168,30 @@ export class RunicEditor extends Component<Props, State> {
     runeInput?: TextInput;
 
     state: State = {
-        currentLangId: INITIAL_LANG_ID,
         loading: false,
     };
 
     private debounceTimer?: number;
     // Guards against out-of-order async results clobbering newer ones.
     private requestToken = 0;
+    private unsubscribe?: () => void;
 
     componentDidMount(): void {
+        // React to the global language selector: re-render localized labels and
+        // re-translate the current source text in the newly-selected language.
+        this.unsubscribe = languageStore.subscribe(() => {
+            this.forceUpdate();
+            this.scheduleTranslate();
+        });
         // If a non-English language was remembered, the readouts are blank —
         // translate the sample text now (this is what boots the engine).
-        if (this.state.currentLangId !== "en") {
+        if (languageStore.get() !== "en") {
             this.scheduleTranslate();
         }
+    }
+
+    componentWillUnmount(): void {
+        this.unsubscribe?.();
     }
 
     // --- Translation pipeline
@@ -219,7 +206,7 @@ export class RunicEditor extends Component<Props, State> {
 
     private runTranslate = async () => {
         const text = this.sourceInput?.textareaElement?.value ?? "";
-        const language = getLanguage(this.state.currentLangId);
+        const language = languageStore.getLanguage();
         const token = ++this.requestToken;
 
         this.setState({ loading: true });
@@ -240,14 +227,6 @@ export class RunicEditor extends Component<Props, State> {
     // Listeners
 
     onSourceChange = (_text: string) => {
-        this.scheduleTranslate();
-    };
-
-    onLanguageSelect = (event: Event) => {
-        const langId = (event.currentTarget as HTMLSelectElement).value;
-        storeLang(langId);
-        this.setState({ currentLangId: langId });
-        // Re-translate the current source text in the newly-selected language.
         this.scheduleTranslate();
     };
 
@@ -353,36 +332,18 @@ export class RunicEditor extends Component<Props, State> {
     };
 
     render() {
-        const language = getLanguage(this.state.currentLangId);
+        const language = languageStore.getLanguage();
         return (
             <div className="runic-editor">
-                <div className="runic-editor__language-bar">
-                    <label
-                        className="runic-editor__language-label"
-                        htmlFor="language-select"
-                    >
-                        Language:
-                    </label>
-                    <select
-                        id="language-select"
-                        className="runic-editor__language-select"
-                        value={this.state.currentLangId}
-                        onChange={this.onLanguageSelect}
-                    >
-                        {LANGUAGES.map((lang) => (
-                            <option value={lang.id}>{lang.label}</option>
-                        ))}
-                    </select>
-                    {this.state.loading && (
-                        <span className="runic-editor__loading">
-                            Translating…
-                        </span>
-                    )}
-                </div>
+                {this.state.loading && (
+                    <div className="runic-editor__status">
+                        {t("translating")}
+                    </div>
+                )}
                 <div className="runic-editor__input-area">
                     <TextInput
                         ref={(e) => (this.sourceInput = e)}
-                        label={`Input (${language.label})`}
+                        label={`${t("input")} (${language.label})`}
                         placeholder={language.sampleText}
                         name="text-input--source"
                         bindInput={this.onSourceChange}
@@ -392,7 +353,7 @@ export class RunicEditor extends Component<Props, State> {
                     <span className="runic-editor__input-divider">&nbsp;</span>
                     <TextInput
                         ref={(e) => (this.nativeInput = e)}
-                        label="Native IPA"
+                        label={t("nativeIpa")}
                         name="text-input--native"
                         readOnly
                         bindInput={() => {}}
@@ -402,7 +363,7 @@ export class RunicEditor extends Component<Props, State> {
                     <span className="runic-editor__input-divider">&nbsp;</span>
                     <TextInput
                         ref={(e) => (this.runeInput = e)}
-                        label="Rune IPA (Tunic)"
+                        label={t("runeIpa")}
                         name="text-input--rune"
                         readOnly
                         bindInput={() => {}}
@@ -424,7 +385,7 @@ export class RunicEditor extends Component<Props, State> {
                     </div>
                     <hr />
                     <details open>
-                        <summary>Settings</summary>
+                        <summary>{t("settings")}</summary>
                         {getSettings(this)}
                     </details>
                 </div>
