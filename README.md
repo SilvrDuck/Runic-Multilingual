@@ -1,11 +1,9 @@
 # The Tunic Translator Tool - Multilingual Fork
 
-> **This is a fork of [aryanpingle/Runic](https://github.com/aryanpingle/Runic) ([live site](https://aryanpingle.github.io/Runic/)).**
-> This fork adds **multilingual support**: source text in any supported language is converted to phonemes in-browser using eSpeak-ng, then mapped to the closest Tunic-rune phonemes, so you can transliterate words from English, French, or German. Adding more languages is straightforward - see [`src/languages/README.md`](src/languages/README.md).
+Deployed at: [https://silvrduck.github.io/Runic-Multilingual/](https://silvrduck.github.io/Runic-Multilingual/)
 
-<p align="center">
-    <a href="https://silvrduck.github.io/Runic-Multilingual/"><strong>Live Site</strong></a>
-</p>
+> **This is a fork of [aryanpingle/Runic](https://github.com/aryanpingle/Runic).**
+> This fork adds **multilingual support**: source text in any supported language is converted to phonemes in-browser using eSpeak-ng, then mapped to the closest Tunic-rune phonemes, so you can transliterate words from English, French, or German. Adding more languages is straightforward - see [`src/languages/README.md`](src/languages/README.md).
 
 <p align="center">
     <img src="./public/images/banner.jpg" alt="Banner image showing off Runic">
