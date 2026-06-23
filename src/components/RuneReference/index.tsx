@@ -74,13 +74,25 @@ export class RuneReferenceTable extends Component<Props, State> {
     }
 
     render(props: Props) {
+        // Hide greyed-out cards whose rune shape is already covered by a
+        // reachable card with the same mask — avoids showing two identical-
+        // looking runes where one is lit and one is grey.
+        const reachableMasks = new Set(
+            props.table
+                .filter((s) => isRuneReachable(s.ipaSymbol))
+                .map((s) => s.mask),
+        );
+        const visible = props.table.filter(
+            (s) => isRuneReachable(s.ipaSymbol) || !reachableMasks.has(s.mask),
+        );
+
         return (
             <>
                 {languageStore.get() !== "en" && (
                     <p class="rune-reference-notice">{t("approxNotice")}</p>
                 )}
                 <div class="rune-reference-grid">
-                    {...props.table.map(runeReferenceGridItem)}
+                    {...visible.map(runeReferenceGridItem)}
                 </div>
             </>
         );

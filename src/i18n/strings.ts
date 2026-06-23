@@ -34,7 +34,7 @@ export const STRINGS: Record<string, Partial<Record<StringKey, string>>> = {
         runeIpa: "English IPA (Tunic)",
         translating: "Translating…",
         approxNotice:
-            "Tunic runes are based on English sounds. Greyed-out runes don't exist in this language, so they won't appear. The rest are approximate: each sound is matched to the closest English sound.",
+            "Runes are based on English sounds. Greyed runes rarely appear; others map to the closest English sound.",
         settings: "Settings",
         thickness: "Thickness",
         glow: "Glow Effect",
@@ -51,11 +51,11 @@ export const STRINGS: Record<string, Partial<Record<StringKey, string>>> = {
     fr: {
         language: "Langue",
         input: "Saisie",
-        nativeIpa: "IPA française",
-        runeIpa: "API anglais (Tunic)",
+        nativeIpa: "IPA français",
+        runeIpa: "IPA anglais (Tunic)",
         translating: "Traduction…",
         approxNotice:
-            "Les runes Tunic sont basées sur les sons anglais. Les runes grisées n'existent pas en français et ne vont pas apparaître. Les autres sont approximatives : chaque son est associé au son anglais le plus proche.",
+            "Les runes sont basées sur les sons anglais. Les runes grisées apparaissent rarement ; les autres utilisent le son anglais le plus proche.",
         settings: "Paramètres",
         thickness: "Épaisseur",
         glow: "Effet de lueur",
@@ -76,7 +76,7 @@ export const STRINGS: Record<string, Partial<Record<StringKey, string>>> = {
         runeIpa: "Englische IPA (Tunic)",
         translating: "Übersetze…",
         approxNotice:
-            "Tunic-Runen basieren auf englischen Lauten. Ausgegraute Runen gibt es im Deutschen nicht und werden nicht auftauchen. Die anderen sind Näherungen: jeder Laut wird dem nächstliegenden englischen Laut zugeordnet.",
+            "Runen basieren auf englischen Lauten. Ausgegraute Runen erscheinen kaum; die anderen nutzen den nächsten englischen Laut.",
         settings: "Einstellungen",
         thickness: "Dicke",
         glow: "Leuchteffekt",
