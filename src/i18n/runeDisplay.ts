@@ -43,6 +43,21 @@ export function runeDisplaySymbol(sym: string, langId: string): string {
     return RUNE_DISPLAY[langId]?.[sym] ?? sym;
 }
 
+/**
+ * Runes a native module REASSIGNS to a genuinely different sound — the donor
+ * glyphs whose default Runic sound never occurs in the language (vs the cosmetic
+ * relabels above, which keep ~the same sound in the language's own notation).
+ * Drives the discreet "replaces <original>" note on the reference card.
+ */
+export const REASSIGNED_RUNES: Record<string, string[]> = {
+    "ch-fr-override": ["ʊ", "ɪ", "aɪ", "aʊ", "ɔɪ", "θ"],
+};
+
+/** True if this rune has been reassigned to a new sound in the given language. */
+export function isReassignedRune(sym: string, langId: string): boolean {
+    return REASSIGNED_RUNES[langId]?.includes(sym) ?? false;
+}
+
 // Rune symbols longest-first, so multi-char runes ("tʃ", "ɛ̃", "aɪ") match before
 // their single-char prefixes (symbolDataTable is already sorted by length desc).
 const SYMBOLS = symbolDataTable.map((s) => s.ipaSymbol);

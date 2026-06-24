@@ -25,7 +25,8 @@ export type StringKey =
     | "opaqueBg"
     | "copy"
     | "share"
-    | "nativeModeBanner";
+    | "nativeModeBanner"
+    | "replacesRune";
 
 export const STRINGS: Record<string, Partial<Record<StringKey, string>>> = {
     en: {
@@ -50,6 +51,7 @@ export const STRINGS: Record<string, Partial<Record<StringKey, string>>> = {
         share: "Share",
         nativeModeBanner:
             "This mode reassigns runes to this language's own sounds. It overrides part of Tunic's default phonetics.",
+        replacesRune: "replaces",
     },
     "fr-ch": {
         language: "Langue",
@@ -94,6 +96,7 @@ export const STRINGS: Record<string, Partial<Record<StringKey, string>>> = {
         share: "Partager",
         nativeModeBanner:
             "Ce mode réassigne les runes aux sons du français romand. Il remplace une partie de la phonétique par défaut de Tunic.",
+        replacesRune: "remplace",
     },
     de: {
         language: "Sprache",

@@ -7,6 +7,7 @@ import {
     languageStore,
     exampleOverride,
     isRuneReachable,
+    isReassignedRune,
     runeDisplaySymbol,
     t,
 } from "src/i18n";
@@ -36,6 +37,8 @@ function runeReferenceGridItem(symbol: SymbolData): VNode<any> {
         : symbol.pronunciation;
     const examples = override?.examples ?? symbol.examples;
     const muted = languageStore.get() !== "en" && !reachable;
+    // Native modes reassign some runes to a new sound; flag the originals.
+    const reassigned = isReassignedRune(symbol.ipaSymbol, languageStore.get());
 
     return (
         <div className="rune-reference-grid-item">
@@ -64,6 +67,11 @@ function runeReferenceGridItem(symbol: SymbolData): VNode<any> {
                         {examples}
                     </span>
                 </div>
+                {reassigned && (
+                    <span class="rune-card__replaces">
+                        {t("replacesRune")} {symbol.ipaSymbol}
+                    </span>
+                )}
             </div>
         </div>
     );
