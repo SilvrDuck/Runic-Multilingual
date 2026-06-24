@@ -81,7 +81,7 @@ export const STRINGS: Record<string, Partial<Record<StringKey, string>>> = {
         runeIpa: "IPA romand (Tunic)",
         translating: "Traduction…",
         approxNotice:
-            "Les runes ont été réassignées aux sons du français romand : un lecteur natif apprend chaque rune. Les runes grisées ne sont pas utilisées.",
+            "Les exemples sont en français romand. Les runes grisées ne sont pas utilisées.",
         settings: "Paramètres",
         thickness: "Épaisseur",
         glow: "Effet de lueur",
