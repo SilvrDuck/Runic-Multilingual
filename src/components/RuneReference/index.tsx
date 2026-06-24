@@ -37,8 +37,10 @@ function runeReferenceGridItem(symbol: SymbolData): VNode<any> {
         : symbol.pronunciation;
     const examples = override?.examples ?? symbol.examples;
     const muted = languageStore.get() !== "en" && !reachable;
-    // Native modes reassign some runes to a new sound; flag the originals.
+    // Native modes reassign some runes to a new sound; flag the originals with
+    // the default symbol + its first English example word.
     const reassigned = isReassignedRune(symbol.ipaSymbol, languageStore.get());
+    const originalExample = symbol.examples.split(",")[0]?.trim() ?? "";
 
     return (
         <div className="rune-reference-grid-item">
@@ -69,7 +71,7 @@ function runeReferenceGridItem(symbol: SymbolData): VNode<any> {
                 </div>
                 {reassigned && (
                     <span class="rune-card__replaces">
-                        {t("replacesRune")} {symbol.ipaSymbol}
+                        {t("replacesRune")} {symbol.ipaSymbol} ({originalExample})
                     </span>
                 )}
             </div>
