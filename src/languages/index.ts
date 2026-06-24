@@ -26,10 +26,11 @@ export const LANGUAGES: LanguageModule[] = [
         sampleText: "Tunic\nSecret Legend!",
     },
     {
-        id: "fr",
-        label: "Français",
-        espeakVoice: "fr",
-        phonemeMap: PHONEME_MAPS.fr,
+        id: "fr-ch",
+        label: "Français (Suisse)",
+        espeakVoice: "fr-ch",
+        // Bracket access: the hyphen makes PHONEME_MAPS.fr-ch invalid.
+        phonemeMap: PHONEME_MAPS["fr-ch"],
         sampleText: "Château\nde sable",
     },
     {

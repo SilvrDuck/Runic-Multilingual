@@ -13,19 +13,33 @@ source text
 ```
 
 A rune can only encode one **General-American** phoneme, so a language module's
-job is to map each of its native phonemes to the *closest-sounding* phoneme in
-that fixed inventory (defined in [`src/runeDataset.ts`](../runeDataset.ts)).
-"Closest" is resolved two ways:
+job is to map each native phoneme to the rune phoneme(s) that best survive a
+**round-trip through a native reader**: the user *writes* their language in runes
+and *reads it back*, so we pick the rune a **native speaker**, sounding it out,
+will most reliably re-read as the original phoneme — while keeping that speaker's
+own contrasts distinct, so minimal pairs stay recoverable. This is the **decode**
+direction (how a French/German speaker assimilates GenAm sounds into their own
+categories), **not** "what an English listener hears". It is resolved two ways:
 
-- **Automated base** — PanPhon articulatory feature-distance picks the nearest
-  rune phoneme. Handles the bulk (identical consonants, plain vowels) for free.
-- **Perceptual overrides** — for sounds English lacks (`y ø œ`, nasals, `ç`,
-  `x`, `ʁ`, …) feature-distance is *wrong* (perception ≠ articulation), so we
-  override with values from assimilation research (e.g. French `y → u`).
+- **Per-language overrides** — authoritative hand tables in
+  `scripts/gen_phoneme_map.py`, chosen from native-as-listener perception and
+  loanword-into-the-native-language evidence. Sounds with no GenAm rune
+  (`y ø œ`, nasal vowels, `ç`, `x`, `ʁ`, …), contrast-preserving choices, and any
+  genuinely contested call (flagged `CONTESTED`) live here.
+- **Automated fallback** — PanPhon articulatory feature-distance fills in any
+  symbol *not* overridden (identical consonants, plain vowels) for free.
 
 Both live in `scripts/gen_phoneme_map.py`, which bakes them into the frozen
 lookup table `src/phonemes/maps.generated.ts` at build time (no Python or model
 runs in the browser).
+
+> **Dialect note.** The French module is **Swiss French (`fr-ch`)**: the tool's
+> designer is from **Geneva**, so the map keeps their own dialect and
+> preferences — *patte*≠*pâte* is preserved (Genevan keeps `/a/`–`/ɑ/`), while
+> *brun*=*brin* is merged (the designer's own usage). A metropolitan `fr` could
+> be added later with different overrides; `de` targets a Standard-German reader.
+> See [`PHONEME-REFRAME-REPORT.md`](../../PHONEME-REFRAME-REPORT.md) for the
+> per-phoneme evidence behind the current maps.
 
 ---
 
@@ -59,12 +73,14 @@ INVENTORY = {
 }
 ```
 
-### 3. Add perceptual overrides (recommended)
+### 3. Add overrides (recommended)
 
-Add an `OVERRIDES` entry only for sounds where the automated base would sound
-wrong, mapping to the closest rune phoneme. The shared `COMMON` artifacts
-(`ᵻ→ɪ`, `ɾ→ɹ`, …) are applied automatically — don't repeat them. Flag any
-genuinely contested choice in a comment so it's easy to revisit.
+Add an `OVERRIDES` entry for any sound where the automated fallback would not
+round-trip for a native reader, and to preserve the native speaker's contrasts.
+The universal `COMMON` normalizations (`ɾ→ɹ`, dark-`l`, …) apply to every
+language automatically; English-only reductions live in `COMMON_EN` — don't
+repeat either. A value may be a sequence (`nj`, `ɑn`) or `""` to drop a phoneme.
+Flag any genuinely contested choice with a `CONTESTED` comment.
 
 See [Finding perceptual overrides](#finding-perceptual-overrides) below for how
 to source good values.
@@ -109,6 +125,10 @@ Add an entry to `LANGUAGES` in [`index.ts`](./index.ts):
 },
 ```
 
+If the eSpeak voice id contains a hyphen (e.g. `fr-ch`), use **bracket access** —
+`phonemeMap: PHONEME_MAPS["fr-ch"]` — because `PHONEME_MAPS.fr-ch` is invalid JS.
+The generator quotes language keys for the same reason.
+
 ### 6. Translate the UI strings
 
 Add an entry for your language id to `STRINGS` in
@@ -152,46 +172,46 @@ examples all look right.
 
 ---
 
-## Finding perceptual overrides
+## Finding overrides (native-reader, decode direction)
 
-An override answers one question: **when a native English speaker hears this
-foreign sound, which English phoneme do they think they heard?** That is
-*perceptual* similarity, and it routinely differs from how a sound is *produced*
-or how it looks on a spectrogram. The textbook example: French `/y/` (the *tu*
-vowel) is acoustically closest to English `/i/`, yet English ears file it under
-`/u/` because the lip-rounding cue dominates. The automated PanPhon base already
-covers articulatory closeness — so overrides exist **specifically for the cases
-where perception diverges from articulation** (front-rounded vowels, nasal
-vowels, `ç`, `x`, uvular `ʁ`, …).
+An override answers one question: **when this language's speaker sounds out a
+GenAm rune, which of their OWN phonemes do they produce?** We want the rune whose
+native reading lands back on the source phoneme, and that stays distinct from the
+speaker's other phonemes. That is the *decode* direction — the mirror image of
+the old English-listener question. The cautionary example: English ears file
+French `/y/` (*tu*) under `/u/`, but a French reader sounding out the `u` rune
+produces French `/u/` (*tout*), so `y→u` would destroy *tu*/*tout*. Always ask
+"what does the **native** reader recover?" — and "which of their contrasts must
+survive?".
 
 ### Where the data lives
 
-- **Perceptual assimilation studies — the gold standard.** These literally
-  measure which native category listeners choose for a non-native sound.
-  - Frameworks to search by name: **Perceptual Assimilation Model** (PAM /
-    PAM-L2 — Best; Best & Tyler 2007) and the **Speech Learning Model**
-    (SLM / SLM-r — Flege; Flege & Bohn 2021).
-  - Productive authors: **Catherine Best, James Flege, Winifred Strange,
-    Ocke-Schwen Bohn**. (Strange et al.'s French & German vowel-assimilation
-    studies by American-English listeners are exactly what the current `fr`/`de`
-    overrides rest on.)
-  - Search Google Scholar / *JASA* (J. Acoustical Society of America) /
-    *Journal of Phonetics* / *Language and Speech* for queries like:
-    - `perceptual assimilation of <language> vowels by English listeners`
-    - `cross-language speech perception <language> consonants`
-    - `<language> L2 English perception assimilation`
-- **Loanword / nativization phonology.** How English actually borrows words
-  from the language reveals the habitual substitutions (e.g. why *Bach* becomes
-  "Bock"). Search `loanword adaptation <language> English`,
-  `nativization of <language> in English`.
+- **Cross-language / L2 perception studies — the gold standard**, in the
+  **native-listener** direction: how do speakers of *this language* assimilate
+  English/GenAm sounds into their own categories?
+  - Frameworks: **Perceptual Assimilation Model** (PAM / PAM-L2 — Best) and the
+    **Speech Learning Model** (SLM / SLM-r — Flege & Bohn).
+  - Productive authors: **Catherine Best, James Flege, Ocke-Schwen Bohn,
+    Winifred Strange** — plus Rochet (1995), whose /i–y–u/ result shows *which*
+    native category a vowel assimilates to depends on the listener's L1 (exactly
+    our decode question).
+  - Search Google Scholar / *JASA* / *Journal of Phonetics* for queries like:
+    - `<language> listeners perception of English vowels`
+    - `L2 English perception assimilation <language> speakers`
+    - `cross-language speech perception English by <language> listeners`
+- **Loanword / nativization phonology — INTO the native language.** How the
+  language borrows *English* words shows the habitual GenAm→native substitutions
+  (the decode map, ready to invert). Search `anglicism adaptation <language>`,
+  `English loanword phonology in <language>`.
 - **"&lt;Language&gt; phonology" on Wikipedia** + the IPA help pages — fastest
-  first pass; phoneme tables there often list an "English approximation" and
-  example words per sound.
-- **Pronunciation / teaching guides** that describe the "nearest English sound"
-  for learners — informal, but fine for the obvious cases.
+  first pass; note the *native* realisations and the speaker's own contrasts.
+- **Pronunciation / teaching guides** describing how natives pronounce English —
+  informal, but fine for obvious cases.
 
-Prefer published perceptual data; fall back to loanword patterns, then teaching
-guides, then (last resort) reasoned articulatory analogy.
+Prefer native-listener perception data; fall back to anglicism/loanword patterns,
+then teaching guides, then (last resort) reasoned acoustic analogy. Native-listener
+data is thinner than English-listener data, so expect more `CONTESTED` calls —
+confirm with a native speaker (below).
 
 ### Asking an LLM
 
@@ -199,40 +219,42 @@ An LLM is good for a first draft and for surfacing the relevant studies — but
 only if you force it to **actually research and cite**. Use a model with web
 search / browsing or a "deep research" mode enabled; a model answering from
 memory alone **will invent plausible-looking citations**. Give it the *fixed
-target inventory*, force the *perceptual* criterion, and make verifiable
-citations a hard requirement:
+target inventory*, force the *native-reader round-trip* criterion, and make
+verifiable citations a hard requirement:
 
-> Research the perceptual assimilation of **&lt;LANGUAGE&gt;** phonemes by native
-> English listeners, then map each &lt;LANGUAGE&gt; phoneme to the closest phoneme
-> in this FIXED inventory (General American English):
-> `æ ɑ ɔ eɪ ɛ i ə ɪ aɪ ɝ oʊ ɔɪ u ʊ aʊ  b tʃ d f ɡ h dʒ k l m n ŋ p ɹ s ʃ t θ ð v w j z ʒ`
+> Goal: a NATIVE **&lt;LANGUAGE&gt;** speaker writes their language in a phonetic
+> script whose only symbols are this FIXED General-American inventory, then READS
+> IT BACK. For each &lt;LANGUAGE&gt; phoneme, pick the symbol(s) a native speaker,
+> sounding them out, will most reliably re-read as that phoneme, AND that keep the
+> speaker's own minimal pairs distinct.
+> Inventory: `æ ɑ ɔ eɪ ɛ i ə ɪ aɪ ɝ oʊ ɔɪ u ʊ aʊ  b tʃ d f ɡ h dʒ k l m n ŋ p ɹ s ʃ t θ ð v w j z ʒ`
 >
 > **Search the current literature before answering — do not rely on memory.**
-> Prioritise perceptual-assimilation and L2-perception studies (PAM / SLM;
-> authors such as Best, Flege, Strange, Bohn) and loanword-adaptation phonology.
+> Use the **native-listener** direction: how &lt;LANGUAGE&gt; speakers
+> perceive/assimilate English sounds (PAM-L2 / SLM; Best, Flege, Bohn) and how
+> the language adapts English loanwords.
 >
-> Return a table, one row per &lt;LANGUAGE&gt; phoneme, with columns:
-> 1. target phoneme(s) — which the native English listener most likely perceives
->    it as (perceptual, **NOT** articulatory or spectral similarity); use a
->    two-rune sequence where better (nasal vowel → vowel + nasal consonant,
->    affricate → stop + fricative);
-> 2. confidence (high / medium / low);
-> 3. a **real, openable citation** — author(s), year, title, venue, and a DOI or
->    URL I can click.
+> Return one row per &lt;LANGUAGE&gt; phoneme:
+> 1. target symbol(s) the native reader recovers it as (use a two-rune sequence
+>    where better — nasal vowel → vowel + nasal consonant; affricate → stop +
+>    fricative; `""` to drop);
+> 2. which native minimal pairs survive / collapse under that choice;
+> 3. confidence (high / medium / low);
+> 4. a **real, openable citation** — author(s), year, title, venue, DOI/URL.
 >
 > Rules: cite only sources you have actually found and can link; if you cannot
-> find a source for a phoneme, write "no source — reasoned" instead of inventing
-> one; and explicitly flag any phoneme where acoustic and perceptual similarity
-> disagree.
+> find one, write "no source — reasoned" instead of inventing it; flag any
+> phoneme whose native-reader recovery is uncertain as CONTESTED.
 
 Then **open every cited link yourself** to confirm it exists and says what's
 claimed, keep only the mappings you can corroborate, and mark the rest
-`CONTESTED` in a code comment (as the `fr`/`de` tables do).
+`CONTESTED` in a code comment (as the `fr-ch`/`de` tables do).
 
 ### Validate
 
-- Run `npm run dev`, type words that exercise each tricky sound, and check the
-  **Native IPA** → **Rune IPA** readouts: does the rune output *sound* like the
-  word said aloud?
-- The strongest check: have a fluent/native speaker read the source text and
-  confirm the runes match what they actually hear.
+- Run `npm run dev`, type words that exercise each tricky sound (especially
+  minimal pairs), and check the **Native IPA** → **Rune IPA** readouts: would a
+  native reader sounding out the runes *recover the word* — and keep it distinct
+  from its minimal-pair partner?
+- The strongest check: have a native speaker **read the runes (or the per-language
+  read-back hints) aloud** and confirm they recover the original word.
