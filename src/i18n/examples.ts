@@ -54,6 +54,50 @@ export const TABLE_EXAMPLES: Record<
         ŋ: { pronunciation: "ng", examples: "camping, parking" },
     },
 
+    // Native Swiss-French runic: idle English-sound runes reassigned to French
+    // sounds (see scripts/gen_phoneme_map.py + src/i18n/runeDisplay.ts). Keyed by
+    // the underlying rune-IPA symbol; the chart shows the French label instead.
+    "ch-fr-override": {
+        // shared with fr-ch (same map for these runes)
+        i: { pronunciation: "i", examples: "lit, midi, riz" },
+        u: { pronunciation: "ou", examples: "fou, vous, loup" },
+        eɪ: { pronunciation: "é", examples: "été, blé, nez" },
+        ɛ: { pronunciation: "è", examples: "père, mère, sept" },
+        ɑ: { pronunciation: "â", examples: "pâte, mâle, âge" },
+        æ: { pronunciation: "a", examples: "patte, chat, ami" },
+        ɝ: { pronunciation: "eu (peur)", examples: "peur, sœur, cœur" },
+        oʊ: { pronunciation: "o", examples: "beau, mot, eau" },
+        ə: { pronunciation: "e", examples: "le, je, demain" },
+        s: { pronunciation: "s", examples: "sel, classe, six" },
+        z: { pronunciation: "z", examples: "zéro, maison, rose" },
+        f: { pronunciation: "f", examples: "feu, photo, neuf" },
+        v: { pronunciation: "v", examples: "vie, vous, rêve" },
+        m: { pronunciation: "m", examples: "main, pomme, femme" },
+        n: { pronunciation: "n", examples: "non, nous, animal" },
+        p: { pronunciation: "p", examples: "papa, pont, soupe" },
+        t: { pronunciation: "t", examples: "table, tout, petit" },
+        k: { pronunciation: "c / qu", examples: "café, quatre, sac" },
+        b: { pronunciation: "b", examples: "bébé, robe, beau" },
+        d: { pronunciation: "d", examples: "dans, monde, aide" },
+        ɡ: { pronunciation: "g (dur)", examples: "gare, bague, gros" },
+        l: { pronunciation: "l", examples: "lune, ville, sel" },
+        ʃ: { pronunciation: "ch", examples: "chat, chien, vache" },
+        ʒ: { pronunciation: "j", examples: "jour, rouge, jeu" },
+        ɹ: { pronunciation: "r", examples: "rouge, rire, Paris" }, // /ʁ/
+        j: { pronunciation: "y / ille", examples: "yeux, paille, hier" },
+        w: { pronunciation: "ou / w", examples: "oui, moi, jouer" },
+        ŋ: { pronunciation: "ng", examples: "camping, parking" },
+        // reassigned runes (a native reader learns these glyphs)
+        ʊ: { pronunciation: "u (tu)", examples: "tu, rue, lune" }, // /y/
+        ɪ: { pronunciation: "eu (peu)", examples: "peu, deux, feu" }, // /ø/
+        aɪ: { pronunciation: "in", examples: "vin, pain, main" }, // /ɛ̃/
+        aʊ: { pronunciation: "an / en", examples: "vent, temps, dans" }, // /ɑ̃/
+        ɔɪ: { pronunciation: "on", examples: "bon, mon, pont" }, // /ɔ̃/
+        θ: { pronunciation: "gn", examples: "ligne, montagne, campagne" }, // /ɲ/
+        tʃ: { pronunciation: "tch", examples: "match, tchèque, tchatcher" },
+        dʒ: { pronunciation: "dj", examples: "badge, adjoint, Djibouti" },
+    },
+
     de: {
         i: { pronunciation: "i (lang)", examples: "Liebe, wie, Igel" },
         ɪ: { pronunciation: "i (kurz)", examples: "Fisch, mit, Kind" },

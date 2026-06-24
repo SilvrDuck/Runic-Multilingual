@@ -5,6 +5,7 @@ import { REACHABLE_RUNES } from "../phonemes/maps.generated";
 
 export { languageStore } from "./store";
 export { TABLE_EXAMPLES } from "./examples";
+export { runeDisplaySymbol, relabelRuneIPA } from "./runeDisplay";
 
 /**
  * Whether the current language can actually produce this rune phoneme via the
