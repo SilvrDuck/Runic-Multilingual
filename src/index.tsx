@@ -6,6 +6,7 @@ import { consonantDataTable, vowelDataTable } from "./runeDataset";
 import { RunicPlayground } from "components/RunicPlayground";
 import { Testimonials } from "components/Testimonials";
 import { LanguageSelector } from "components/LanguageSelector";
+import { NativeModeBanner } from "components/NativeModeBanner";
 import { setupPageLocalization } from "./i18n";
 import { addGoldenPathListener } from "./holyCross";
 
@@ -17,6 +18,12 @@ function setup() {
     render(
         <LanguageSelector />,
         document.querySelector(".language-selector-container"),
+    );
+
+    // Override-mode banner (only shows for rune-reassigning "native" modules)
+    render(
+        <NativeModeBanner />,
+        document.querySelector(".native-mode-banner-container"),
     );
 
     // Runic Translator
