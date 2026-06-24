@@ -48,7 +48,7 @@ export const STRINGS: Record<string, Partial<Record<StringKey, string>>> = {
         copy: "Copy",
         share: "Share",
     },
-    fr: {
+    "fr-ch": {
         language: "Langue",
         input: "Saisie",
         nativeIpa: "IPA français",
@@ -109,7 +109,7 @@ export const PAGE_COPY: Record<string, Record<string, string>> = {
         footerMain: `Made by <a href="https://github.com/aryanpingle" target="_blank" rel="noopener">Aryan Pingle</a>. This project is <a href="https://github.com/aryanpingle/Runic" target="_blank" rel="noopener">open source on GitHub</a>.`,
         footerDisclaimer: `I do not own any part of "Tunic", or have any relation to the development or production team.<br />I am simply a fan who loves this beautiful, <b>beautiful</b> game.<br />Praise be to indie games.`,
     },
-    fr: {
+    "fr-ch": {
         intro: `Ce site, créé par des fans, vous aide à lire la langue du jeu <a href="https://store.steampowered.com/app/553420/TUNIC/" target="_blank" rel="noopener">Tunic</a> - que la communauté appelle <b>Runic</b>.`,
         translator: `Saisissez du texte dans la langue choisie - il est converti en phonèmes puis associé aux runes Tunic les plus proches, et dessiné ci-dessous.`,
         vowel: `Le contour d'une rune décrit la voyelle - cliquez sur une carte pour la copier !`,

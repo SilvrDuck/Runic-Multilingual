@@ -2,12 +2,15 @@
 """
 Generate frozen phoneme maps: eSpeak-ng native IPA symbol -> rune (GenAm) IPA.
 
-Pipeline (per the design decision "precompute a frozen table offline"):
-  1. Automated base  : PanPhon weighted feature-edit distance picks the nearest
-                       single rune-inventory phoneme for each native symbol.
-  2. Perceptual layer : hand overrides (from the research: PAM/SLM assimilation
-                       data) replace the base where perception != feature-distance.
-                       A value may be a SEQUENCE of rune symbols (e.g. "pf", "ɑn").
+Objective: ROUND-TRIP through a NATIVE reader — pick the rune(s) a native speaker,
+sounding them out, re-reads as the source phoneme, keeping that speaker's contrasts
+distinct. (See PHONEME-REFRAME-REPORT.md for the per-phoneme evidence.)
+
+Pipeline:
+  1. Override layer  : per-language hand tables, authoritative. A value may be a
+                       SEQUENCE of rune symbols (e.g. "pf", "ɑn") or "" to drop.
+  2. Automated base  : PanPhon feature-edit distance — a FALLBACK that picks the
+                       nearest single rune phoneme for any symbol not overridden.
 
 Run:  python scripts/gen_phoneme_map.py
 Out:  src/phonemes/maps.generated.ts   (do not edit by hand; edit overrides here)
@@ -80,12 +83,14 @@ INVENTORY = {
         "i", "ɪ", "ɛ", "æ", "ə", "ʌ", "ɑ", "ɔ", "ʊ", "u",
         "eɪ", "aɪ", "ɔɪ", "oʊ", "aʊ", "ɝ", "ɚ", "ᵻ", "ɫ", "ɐ",
     ],
-    "fr": [
-        # /ð/ and /ɪ/ only appear in eSpeak French for English loanwords; they
-        # aren't native, so they're left out (those runes grey out in the table).
+    # Swiss French (Geneva). eSpeak's fr-ch voice is IPA-identical to fr; the
+    # length mark on aː (pâte vs patte) is the only suprasegmental we exploit.
+    # /ð/ and /ɪ/ only appear for English loanwords (not native), so they're left
+    # out — those runes grey out in the table.
+    "fr-ch": [
         "b", "d", "f", "ɡ", "k", "l", "m", "n", "ɲ", "ŋ", "p", "s", "t",
         "v", "w", "j", "z", "ʁ", "ʃ", "ʒ",
-        "a", "e", "i", "o", "u", "y", "ø", "œ", "ɔ", "ə", "ɛ",
+        "a", "aː", "e", "i", "o", "u", "y", "ø", "œ", "ɔ", "ə", "ɛ",
         "ɛ̃", "ɑ̃", "ɔ̃", "œ̃",
     ],
     "de": [
@@ -96,54 +101,66 @@ INVENTORY = {
     ],
 }
 
-# --- Perceptual overrides (take precedence over the automated base). ---
-# Sources: Strange et al. cross-language assimilation; Flege SLM; research report.
-# Values may be multi-symbol rune sequences (rendered as consecutive runes).
+# --- Universal phonetic normalizations (apply to EVERY language). ---
+# Cross-language facts, NOT English reductions: any trill/tap r is closest to
+# GenAm /ɹ/, dark l to /l/, near-open central to schwa.
 COMMON = {
-    # eSpeak artifacts / GenAm reductions present across voices
+    "r": "ɹ",    # trill/tap r -> GenAm rhotic
+    "ɾ": "ɹ",
+    "ɫ": "l",    # dark l -> l
+    "ɐ": "ə",    # near-open central -> schwa (e.g. German final -er variants)
+}
+
+# --- English-only GenAm reductions: must NOT leak into native-reader maps. ---
+COMMON_EN = {
     "ᵻ": "ɪ",    # barred-i reduced vowel -> ɪ
     "ɚ": "ɝ",    # r-coloured schwa -> ɝ
-    "ɐ": "ə",    # near-open central -> schwa
     "ʌ": "ə",    # no /ʌ/ rune; nearest reduced central
-    "ɫ": "l",    # dark l -> l
-    "r": "ɹ",    # any trill/tap r -> GenAm rhotic
-    "ɾ": "ɹ",
 }
+
+# --- Per-language overrides (authoritative; chosen for native-reader round-trip). ---
+# A value may be a SEQUENCE of rune symbols, or "" to drop the phoneme.
 OVERRIDES = {
     "en": {
         # identity for diphthongs/affricates that ARE in the inventory
         "eɪ": "eɪ", "aɪ": "aɪ", "ɔɪ": "ɔɪ", "oʊ": "oʊ", "aʊ": "aʊ",
         "tʃ": "tʃ", "dʒ": "dʒ", "ɝ": "ɝ",
     },
-    "fr": {
-        "y": "u",       # front rounded -> back rounded (rounding cue dominates; PAM)
-        "ø": "oʊ",      # -> back rounded mid
-        "œ": "ə",       # -> reduced central (no /ʌ/)
-        "ʁ": "ɹ",       # uvular -> GenAm rhotic
-        "ɲ": "nj",      # palatal nasal -> n + j
-        "ɛ̃": "ɛn",      # nasal vowels: oral vowel + /n/ (English reanalysis)
+    # Swiss French (Geneva): preserve patte/pâte (/a/–/ɑ/), merge brun/brin (/œ̃/→/ɛ̃/).
+    "fr-ch": {
+        "a": "æ",        # short /a/ (patte) -> front æ
+        "aː": "ɑ",       # long /ɑ/ (pâte) -> back ɑ (length preserved by normalize)
+        "y": "ju",       # tu≠tout≠dis; no front-rounded rune; CONTESTED: ju vs i
+        "ø": "ə",        # peu; French schwa ≈ [ø], stays distinct from œ→ɝ
+        "œ": "ɝ",        # peur / "-eur" set -> NURSE vowel
+        "ʁ": "ɹ",        # uvular -> only rhotic consonant
+        "ɲ": "nj",       # palatal nasal -> [nj] (modern French realisation)
+        "ɛ̃": "ɛn",       # nasal -> oral vowel + n; ɛ reads back as /ɛ̃/ (Geneva [ɛ̃])
         "ɑ̃": "ɑn",
-        "ɔ̃": "ɑn",      # CONTESTED: ɑn (default) vs oʊ
-        "œ̃": "ən",      # CONTESTED: rare, merges with ɛ̃ in Parisian French
-        "a": "ɑ",       # CONTESTED: ɑ (research default) vs æ (frontness)
+        "ɔ̃": "oʊn",      # rounded back nasal [õ] -> "ohn"
+        "œ̃": "ɛn",       # Geneva: brun=brin -> merge into /ɛ̃/
         "e": "eɪ", "o": "oʊ", "ɔ": "ɑ",
+        "ð": "z", "θ": "s", "h": "",  # guard: no French /ð θ h/ (loanword leakage)
     },
+    # Standard German, native reader.
     "de": {
-        "ç": "ʃ",       # ich-laut -> ʃ (dominant English substitution); CONTESTED vs h
-        "x": "k",       # ach-laut -> k; CONTESTED vs h
-        "ʁ": "ɹ",
-        "ɜ": "ə",       # vocalised r (-er); CONTESTED vs ɝ
-        "y": "u",
-        "ʏ": "ʊ",
-        "ø": "oʊ",
-        "œ": "ə",       # CONTESTED vs ɛ
-        "ɔø": "ɔɪ",     # eu/aeu diphthong -> boy-diphthong
-        "pf": "pf",     # decompose affricate -> p + f
-        "ts": "ts",     # decompose -> t + s
-        "tʃ": "tʃ",     # affricate in inventory -> keep
-        "dʒ": "dʒ",     # affricate in inventory (loanwords); PanPhon picks bare /d/
+        "ɑ": "ɑ",        # long /aː/ (Staat) -> back ɑ
+        "a": "æ",        # short /a/ (Stadt) -> front æ; keeps Stadt≠Staat
+        "x": "h",        # ach-laut -> h (fricative manner kept; Bach≠Backe)
+        "ç": "ʃ",        # ich-laut -> ʃ ("isch"); merges Kirche/Kirsche (accepted)
+        "ʁ": "ɹ",        # uvular onset r -> only rhotic
+        "ɜ": "ə",        # vocalised -er is non-rhotic [ɐ] -> schwa (never ɝ)
+        "y": "ju",       # über; Tür≠Tour; CONTESTED: ju vs i
+        "ʏ": "ɪ",        # Glück; front lax
+        "ø": "ɝ",        # schön -> NURSE (off oʊ; fixes schön/schon)
+        "œ": "ɝ",        # können; stressed-readable mid-central
+        "ɔø": "ɔɪ",      # eu/äu -> boy-diphthong
+        "pf": "pf",      # affricate -> p + f
+        "ts": "ts",      # affricate -> t + s
+        "tʃ": "tʃ",
+        "dʒ": "dʒ",      # affricate in inventory (loanwords); PanPhon picks bare /d/
         "aɪ": "aɪ", "aʊ": "aʊ",
-        "e": "eɪ", "o": "oʊ", "ɔ": "ɑ", "a": "ɑ",
+        "e": "eɪ", "o": "oʊ", "ɔ": "ɑ",
     },
 }
 
@@ -154,10 +171,14 @@ LANGS = list(INVENTORY.keys())
 
 
 def build(lang: str) -> dict:
-    # COMMON artifacts/reductions apply to every language; per-language
-    # overrides win on conflict; everything else falls back to the automated
-    # PanPhon nearest-neighbour.
-    overrides = {**COMMON, **OVERRIDES.get(lang, {})}
+    # Universal normalizations apply everywhere; English-only reductions only to
+    # en; per-language overrides win on conflict; everything else falls back to
+    # the automated PanPhon nearest-neighbour.
+    overrides = {
+        **COMMON,
+        **(COMMON_EN if lang == "en" else {}),
+        **OVERRIDES.get(lang, {}),
+    }
     out = {}
     for sym in set(INVENTORY[lang]) | set(overrides):
         out[sym] = overrides[sym] if sym in overrides else nearest(sym)
@@ -167,7 +188,7 @@ def build(lang: str) -> dict:
 HEADER = """\
 // AUTO-GENERATED by scripts/gen_phoneme_map.py — do not edit by hand.
 // eSpeak-ng native IPA symbol -> rune (General American) IPA symbol(s).
-// Base: PanPhon feature-distance. Overrides: perceptual assimilation data.
+// Per-language overrides chosen for native-reader round-trip; PanPhon fallback.
 """
 
 TEMPLATE = """\

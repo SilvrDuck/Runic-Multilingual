@@ -4,8 +4,11 @@
  * only suprasegmental noise is removed.
  */
 
-// Stress (ˈ ˌ), length (ː ˑ), tie bar (͡), zero-width joiner ties (‍).
-const SUPRASEGMENTALS = /[ˈˌːˑ͡‍]/g;
+// Stress (ˈ ˌ), half-length (ˑ), tie bar (͡), zero-width joiner ties (‍).
+// Full-length ː is deliberately KEPT: Swiss French encodes the patte/pâte
+// (/a/–/ɑ/) contrast purely as length (a vs aː), and the fr-ch map turns aː into a
+// back ɑ. A length mark on any vowel without an explicit map key is dropped in map.ts.
+const SUPRASEGMENTALS = /[ˈˌˑ͡‍]/g;
 
 export function normalizeNativeIPA(raw: string): string {
     return (

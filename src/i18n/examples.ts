@@ -23,12 +23,14 @@ export const TABLE_EXAMPLES: Record<
 > = {
     en: {}, // English uses the defaults in runeDataset.ts
 
-    fr: {
+    "fr-ch": {
         i: { pronunciation: "i", examples: "lit, midi, riz" },
         u: { pronunciation: "ou", examples: "fou, vous, loup" },
         eɪ: { pronunciation: "é", examples: "été, blé, nez" },
         ɛ: { pronunciation: "è", examples: "père, mère, sept" },
-        ɑ: { pronunciation: "a", examples: "pâte, bas, là" },
+        ɑ: { pronunciation: "â", examples: "pâte, mâle, âge" },
+        æ: { pronunciation: "a", examples: "patte, chat, ami" },
+        ɝ: { pronunciation: "eu", examples: "peur, sœur, cœur" },
         oʊ: { pronunciation: "o", examples: "beau, mot, eau" },
         ə: { pronunciation: "e", examples: "le, je, demain" },
         s: { pronunciation: "s", examples: "sel, classe, six" },
@@ -57,7 +59,9 @@ export const TABLE_EXAMPLES: Record<
         ɪ: { pronunciation: "i (kurz)", examples: "Fisch, mit, Kind" },
         eɪ: { pronunciation: "e (lang)", examples: "See, Tee, geht" },
         ɛ: { pronunciation: "e (kurz) / ä", examples: "Bett, Wetter, hätte" },
-        ɑ: { pronunciation: "a", examples: "Vater, Tag, Wasser" },
+        ɑ: { pronunciation: "a (lang)", examples: "Vater, Tag, Staat" },
+        æ: { pronunciation: "a (kurz)", examples: "Mann, Stadt, kalt" },
+        ɝ: { pronunciation: "ö", examples: "schön, können, Köln" },
         oʊ: { pronunciation: "o (lang)", examples: "Boot, rot, Sohn" },
         u: { pronunciation: "u", examples: "Buch, gut, Uhr" },
         ʊ: { pronunciation: "u (kurz)", examples: "und, Hund, Mutter" },
