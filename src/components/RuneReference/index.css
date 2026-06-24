@@ -118,6 +118,6 @@
     padding: 0 0.5em 0.4em;
     font-size: 0.45em;
     font-style: italic;
-    color: var(--on-surface-0-alt);
-    opacity: 0.5;
+    color: crimson;
+    opacity: 0.85;
 }
