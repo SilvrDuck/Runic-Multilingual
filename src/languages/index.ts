@@ -15,6 +15,12 @@ export interface LanguageModule {
     phonemeMap: Record<string, string>;
     /** Placeholder shown when the language is selected. */
     sampleText: string;
+    /**
+     * True for "native" modules that REASSIGN runes to this language's own
+     * sounds (altering what a rune phonetically encodes) rather than mapping to
+     * the closest default rune. Drives the top-of-page override banner.
+     */
+    overridesPhonetics?: boolean;
 }
 
 export const LANGUAGES: LanguageModule[] = [
@@ -42,6 +48,7 @@ export const LANGUAGES: LanguageModule[] = [
         espeakVoice: "fr-ch",
         phonemeMap: PHONEME_MAPS["ch-fr-override"],
         sampleText: "Montagnes\nde Genève",
+        overridesPhonetics: true,
     },
     {
         id: "de",

@@ -1,0 +1,28 @@
+.native-mode-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: var(--article-width);
+    margin: 0.5em auto 0;
+    padding: 0.6em 0.9em;
+    border: 1px solid var(--surface-1-border);
+    border-left: 4px solid crimson;
+    border-radius: 0.5em;
+    background-color: var(--surface-1);
+    color: var(--on-surface-0-alt);
+}
+
+.native-mode-banner__icon {
+    flex-shrink: 0;
+    color: crimson;
+    font-size: 1.1em;
+    line-height: 1;
+}
+
+.native-mode-banner__text {
+    margin: 0;
+    font-size: 0.8em;
+    text-wrap: balance;
+}

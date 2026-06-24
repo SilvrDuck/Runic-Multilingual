@@ -24,7 +24,9 @@ export type StringKey =
     | "transparentBg"
     | "opaqueBg"
     | "copy"
-    | "share";
+    | "share"
+    | "nativeModeBanner"
+    | "replacesRune";
 
 export const STRINGS: Record<string, Partial<Record<StringKey, string>>> = {
     en: {
@@ -47,6 +49,9 @@ export const STRINGS: Record<string, Partial<Record<StringKey, string>>> = {
         opaqueBg: "Opaque background",
         copy: "Copy",
         share: "Share",
+        nativeModeBanner:
+            "This mode reassigns runes to this language's own sounds. It overrides part of Tunic's default phonetics.",
+        replacesRune: "replaces",
     },
     "fr-ch": {
         language: "Langue",
@@ -76,7 +81,7 @@ export const STRINGS: Record<string, Partial<Record<StringKey, string>>> = {
         runeIpa: "IPA romand (Tunic)",
         translating: "Traduction…",
         approxNotice:
-            "Les runes ont été réassignées aux sons du français romand : un lecteur natif apprend chaque rune. Les runes grisées ne sont pas utilisées.",
+            "Les exemples sont en français romand. Les runes grisées ne sont pas utilisées.",
         settings: "Paramètres",
         thickness: "Épaisseur",
         glow: "Effet de lueur",
@@ -89,6 +94,9 @@ export const STRINGS: Record<string, Partial<Record<StringKey, string>>> = {
         opaqueBg: "Fond opaque",
         copy: "Copier",
         share: "Partager",
+        nativeModeBanner:
+            "Ce mode réassigne les runes aux sons du français romand. Il remplace une partie de la phonétique par défaut de Tunic.",
+        replacesRune: "remplace",
     },
     de: {
         language: "Sprache",

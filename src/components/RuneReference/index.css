@@ -111,3 +111,13 @@
     opacity: 0.75;
     font-size: 0.5em;
 }
+
+/* Discreet footnote on a rune a native mode has reassigned: what it normally
+   encodes in default Runic. */
+.rune-card__replaces {
+    padding: 0 0.5em 0.4em;
+    font-size: 0.45em;
+    font-style: italic;
+    color: crimson;
+    opacity: 0.85;
+}
