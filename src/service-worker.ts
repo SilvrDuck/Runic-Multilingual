@@ -14,7 +14,7 @@ const log = (text: string, color = "rgb(128, 128, 128)") =>
 
 const ENABLE_CACHING = !IS_DEVELOPMENT;
 
-const CACHE_NAME = "runic-cache-2";
+const CACHE_NAME = "runic-cache-3";
 let CACHE: Cache = null;
 
 self.addEventListener("install", (event) => {

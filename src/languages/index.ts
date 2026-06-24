@@ -34,6 +34,16 @@ export const LANGUAGES: LanguageModule[] = [
         sampleText: "Château\nde sable",
     },
     {
+        // Native Swiss-French runic: same fr-ch voice, but idle runes are
+        // reassigned to French sounds (/y/, nasals, /ø/, /ɲ/). The chart + the
+        // Rune IPA readout show the French symbols via src/i18n/runeDisplay.ts.
+        id: "ch-fr-override",
+        label: "Français (Suisse) · natif",
+        espeakVoice: "fr-ch",
+        phonemeMap: PHONEME_MAPS["ch-fr-override"],
+        sampleText: "Montagnes\nde Genève",
+    },
+    {
         id: "de",
         label: "Deutsch",
         espeakVoice: "de",

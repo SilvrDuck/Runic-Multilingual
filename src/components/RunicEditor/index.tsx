@@ -3,7 +3,7 @@ import "./index.css";
 import { h, Component, VNode } from "preact";
 import { RuneSVG } from "components/RuneSVG";
 import { translate, warmUp } from "src/ipa";
-import { t, languageStore } from "src/i18n";
+import { t, languageStore, relabelRuneIPA } from "src/i18n";
 import { RangeInput } from "components/RangeInput";
 import {
     downloadURI,
@@ -215,7 +215,9 @@ export class RunicEditor extends Component<Props, State> {
             // Ignore stale results from an earlier keystroke / language.
             if (token !== this.requestToken) return;
             this.nativeInput?.setText(nativeIPA);
-            this.runeInput?.setText(runeIPA);
+            // The box shows the language's own symbols (e.g. ɲ, ɛ̃) for modules
+            // that reassign runes; the renderer always gets the real rune-IPA.
+            this.runeInput?.setText(relabelRuneIPA(runeIPA, language.id));
             this.runeSVGElement?.setPhoneticText(runeIPA);
         } catch (e) {
             console.error("Translation failed:", e);

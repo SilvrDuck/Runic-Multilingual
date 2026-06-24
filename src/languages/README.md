@@ -41,6 +41,14 @@ runs in the browser).
 > See [`PHONEME-REFRAME-REPORT.md`](../../PHONEME-REFRAME-REPORT.md) for the
 > per-phoneme evidence behind the current maps.
 
+> **Variant — a native runic alphabet (`ch-fr-override`).** A second kind of
+> module *reassigns* runes instead of approximating them: runes whose English
+> sound never occurs in the language (`θ`/"th", the unused diphthongs) are
+> redefined to stand for sounds that have no good rune (French `/y/`, the nasals,
+> `/ø/`, `/ɲ/`). The reader **learns** the glyph as its native sound rather than
+> sounding out the English one. See
+> [Reassigning runes](#reassigning-runes--a-native-alphabet) below.
+
 ---
 
 ## Steps
@@ -258,3 +266,59 @@ claimed, keep only the mappings you can corroborate, and mark the rest
   from its minimal-pair partner?
 - The strongest check: have a native speaker **read the runes (or the per-language
   read-back hints) aloud** and confirm they recover the original word.
+
+---
+
+## Reassigning runes — a native alphabet
+
+The default modules pick the *closest existing* rune, so the reader sounds out an
+English value. A **reassigning** module (e.g. `ch-fr-override`, Swiss-French
+runic) instead hands idle runes new meanings: the user **learns** that a glyph
+stands for one of their own sounds. This frees the language from English
+phonology — `/y/`, the nasals and `/ɲ/` get glyphs of their own — at the cost of
+not being self-evident (the chart teaches it).
+
+It needs no renderer change, but there is **one hard constraint** and a small
+display layer.
+
+### The class constraint (read this first)
+
+A glyph's *shape is its class*: the renderer fuses exactly **one vowel + one
+consonant** per rune and refuses to merge two of the same class
+(`src/components/RuneSVG/tokenizer.ts`). So you must reassign **vowel→vowel
+glyph** and **consonant→consonant glyph**. Putting a vowel (`/y/`) on a consonant
+glyph (`θ`) would stop `tu` fusing into one rune. The natural home for French
+`/ɲ/` is therefore the freed *consonant* `θ`; `/y/` takes a freed *vowel* glyph.
+
+### Choosing donor glyphs
+
+A glyph is a free donor if it is **not** in the base module's `REACHABLE_RUNES`
+**and** its bitmask is unique. Some glyphs share a mask and would render
+identically (e.g. `ɔ` has `ɑ`'s mask) — check `src/runeDataset.ts` and skip
+those. Among the valid donors, pick the **closest phonetic fit** (Swiss-French
+chose `ɔ̃→ɔɪ`, `ɑ̃→aʊ`, `ɛ̃→aɪ`, `y→ʊ`, `ø→ɪ`, `ɲ→θ`).
+
+### The three edits
+
+1. **`scripts/gen_phoneme_map.py`** — add an `INVENTORY`/`OVERRIDES` entry. You
+   can derive from a base module: `ch-fr-override` reuses `fr-ch`'s inventory and
+   spreads its overrides, then reassigns the handful of keys to donor glyphs
+   (`"ɔ̃": "ɔɪ"`, `"ɲ": "θ"`, …). Regenerate; the donors now appear in
+   `REACHABLE_RUNES`, so their cards light up automatically.
+2. **`src/i18n/runeDisplay.ts`** — add a `RUNE_DISPLAY[lang]` entry mapping each
+   rune-IPA symbol to the symbol you want *shown* (e.g. `ʊ→"y"`, `θ→"ɲ"`). This
+   relabels both the reference chart and the live **Rune IPA** box; the drawn
+   glyph and the underlying rune-IPA are unchanged.
+3. **`src/i18n/examples.ts` + `strings.ts`** — as for any language, but the
+   example words must be ones eSpeak **actually emits the source symbol for**.
+   eSpeak is inconsistent: French `/ɲ/` surfaces for `-gne` words (*montagne*,
+   *ligne*) but comes out as `nj` for *agneau*/*oignon*. Probe with the app's
+   **Native IPA** box before listing a word.
+
+### Why loanwords stay safe
+
+A donor glyph is **output-only** — produced solely by its assigned native key
+(`ɔ̃→ɔɪ`), and the map has no `ɔɪ` *key*. So an English loanword ("Toy Story",
+which eSpeak even voices in English as `tɔɪ …`) cannot land on the "on" rune: the
+`ɔɪ` has no key, `ɔ→ɑ` and the `ɪ` drops. The alphabet stays unambiguous on
+read-back.

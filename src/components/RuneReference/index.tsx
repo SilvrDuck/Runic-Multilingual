@@ -3,7 +3,13 @@ import "./index.css";
 import { RuneSVG } from "components/RuneSVG";
 import { h, Component, VNode } from "preact";
 import { SymbolData } from "src/runeDataset";
-import { languageStore, exampleOverride, isRuneReachable, t } from "src/i18n";
+import {
+    languageStore,
+    exampleOverride,
+    isRuneReachable,
+    runeDisplaySymbol,
+    t,
+} from "src/i18n";
 
 interface Props {
     table: SymbolData[];
@@ -49,7 +55,9 @@ function runeReferenceGridItem(symbol: SymbolData): VNode<any> {
                     ></RuneSVG>
                 </div>
                 <div className="rune-info">
-                    <span class="rune-info__symbol">{symbol.ipaSymbol}</span>
+                    <span class="rune-info__symbol">
+                        {runeDisplaySymbol(symbol.ipaSymbol, languageStore.get())}
+                    </span>
                     <span class="rune-info__english">
                         {pronunciation}
                         <br />

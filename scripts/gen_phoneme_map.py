@@ -165,6 +165,33 @@ OVERRIDES = {
 }
 
 
+# --- Native Swiss-French runic (ch-fr-override) ---
+# Same eSpeak voice + inventory as fr-ch, but IDLE runes (whose English sound
+# never occurs in French) are REASSIGNED to the French sounds fr-ch can only
+# approximate: /y/, the nasals, /ø/, /ɲ/. The reader LEARNS each glyph as its
+# French sound (a native alphabet) instead of sounding out the English value.
+# Donor glyphs are CLASS-MATCHED (vowel→vowel, consonant→consonant — the renderer
+# fuses one vowel + one consonant per rune) and picked for closest phonetic fit.
+# src/i18n/runeDisplay.ts relabels the chart + readout to the French symbols.
+INVENTORY["ch-fr-override"] = INVENTORY["fr-ch"] + ["tʃ", "dʒ"]
+OVERRIDES["ch-fr-override"] = {
+    **OVERRIDES["fr-ch"],
+    "y": "ʊ",        # tu  -> short-oo glyph (stays ≠ u = tout)
+    "ø": "ɪ",        # peu -> short-i glyph (splits peu ≠ le = schwa)
+    "ɛ̃": "aɪ",       # vin  -> "eye" glyph
+    "ɑ̃": "aʊ",       # vent -> "ow" glyph
+    "ɔ̃": "ɔɪ",       # bon  -> "oy" glyph
+    "œ̃": "aɪ",       # brun -> "eye" glyph (brun = brin, Geneva merge)
+    "ɲ": "θ",        # -gne -> freed "th" consonant glyph (montagne, ligne)
+    "tʃ": "tʃ",      # keep exotic (match, tchèque)
+    "dʒ": "dʒ",      # keep exotic (badge, adjoint)
+    # Loanword guards: eSpeak voices foreign words in English, so keep those
+    # English vowels OFF this module's REASSIGNED glyphs (ɪ ʊ aɪ aʊ ɔɪ now mean
+    # ø y ɛ̃ ɑ̃ ɔ̃). Redirect them to plain runes / vowel+glide instead.
+    "ɪ": "i", "ʊ": "u",
+    "aɪ": "ɑj", "aʊ": "ɑw", "ɔɪ": "oʊj",
+}
+
 # Languages to generate, derived from INVENTORY — add a language by adding an
 # entry to INVENTORY (and optionally OVERRIDES); nothing else here changes.
 LANGS = list(INVENTORY.keys())
@@ -174,7 +201,17 @@ def build(lang: str) -> dict:
     # Universal normalizations apply everywhere; English-only reductions only to
     # en; per-language overrides win on conflict; everything else falls back to
     # the automated PanPhon nearest-neighbour.
+    #
+    # Loanword graceful-degradation: eSpeak switches to its English voice for
+    # foreign words (the "(en)…(fr)" markers), emitting GenAm phonemes. Pass any
+    # that are themselves valid runes straight through, so they RENDER instead of
+    # being silently dropped (otherwise "story" → "stɑi", "parking" → "pkŋ").
+    # These keys are non-native — never in INVENTORY — so they do NOT change
+    # REACHABLE_RUNES or the reference-table greying. Per-language OVERRIDES still
+    # win (fr-ch's θ→s guard; ch-fr-override redirecting its reassigned glyphs).
+    loanword = {tok: tok for tok in RUNE_TOKENS}
     overrides = {
+        **loanword,
         **COMMON,
         **(COMMON_EN if lang == "en" else {}),
         **OVERRIDES.get(lang, {}),
